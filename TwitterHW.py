@@ -20,7 +20,7 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 # And we've provided the setup for your cache. But we haven't written any functions for you, so you have to be sure that any function that gets data from the internet relies on caching.
 CACHE_FNAME = "twitter_cache.json"
 try:
-    cache_file = open(CACHE_FNAME,'r')
+    cache_file = open(CACHE_FNAME,'r') 
     cache_contents = cache_file.read()
     cache_file.close()
     CACHE_DICTION = json.loads(cache_contents)
@@ -36,9 +36,9 @@ except:
 def get_tweets():
     if 'umsi' in CACHE_DICTION:
         print('Data was in the cache')
-        twitter_results = CACHE_DICTION['umsi']
+        twitter_results = CACHE_DICTION['umsi'] #check if cache already exists
     else:
-        print('Making a request for (new data...')
+        print('Making a request for (new data...')  #if it doesnt search for umsi tweets and create new cache
         twitter_results = api.search(q='umsi')
         CACHE_DICTION['umsi'] = twitter_results
         f = open(CACHE_FNAME,'w')
@@ -68,12 +68,14 @@ cur.execute('DROP TABLE IF EXISTS Tweets')
 cur.execute('CREATE TABLE Tweets (tweet_id TEXT, author TEXT, time_posted TIMESTAMP, tweet_text TEXT, retweets NUMBER)')
 
 # 3 - Invoke the function you defined above to get a list that represents a bunch of tweets from the UMSI timeline. Save those tweets in a variable called umsi_tweets.
-umsi_tweets = get_tweets()
+tweets = get_tweets()
+tweets = tweets["statuses"]
+
 
 # 4 - Use a for loop, the cursor you defined above to execute INSERT statements, that insert the data from each of the tweets in umsi_tweets into the correct columns in each row of the Tweets database table.
-for t in umsi_tweets:
-    tup = t["id"], t["user"]["screen_name"], t["created_at"], t["text"], t["retweet_count"]
-    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ? )', tup)
+for t in tweets:
+    data = t["id"], t["user"]["screen_name"], t["created_at"], t["text"], t["retweet_count"]
+    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ? )', data)
 #  5- Use the database connection to commit the changes to the database
 conn.commit()
 # You can check out whether it worked in the SQLite browser! (And with the tests.)
@@ -87,9 +89,9 @@ conn.commit()
 # Include the blank line between each tweet.
 print("tests for part 2")
 cur.execute("SELECT time_posted, tweet_text FROM Tweets")
-all_results = cur.fetchall()
-for t in all_results:
-    print(t[0] + " - " + t[1]+"\n")
+results = cur.fetchall()
+for tweet in results:
+    print(tweet[0] + " - " + tweet[1]+"\n")
 
 
 # Select the author of all of the tweets (the full rows/tuples of information) that have been retweeted MORE
@@ -97,7 +99,6 @@ for t in all_results:
 # Print the results
 cur.execute("SELECT author FROM Tweets")
 more_than_2_rts = cur.fetchall()
-#print("more_than_2_rts - %s " % set(more_than_2_rts))
 print(more_than_2_rts)
 cur.close()
 
